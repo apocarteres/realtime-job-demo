@@ -28,7 +28,6 @@ public final class ParallelExecutor {
   private final ExecutorService pool;
   private final AtomicInteger pending;
 
-
   public ParallelExecutor(int simultaneousJobs) {
     this.simultaneousJobs = simultaneousJobs;
     this.queue = new PriorityQueue<>((j1, j2) -> compare(j2.getPriority(), j1.getPriority()));
@@ -66,7 +65,8 @@ public final class ParallelExecutor {
     }
     pending.incrementAndGet();
     synchronized (mutex) {
-      startTimeMap.put(job, System.currentTimeMillis());
+      long now = System.currentTimeMillis();
+      startTimeMap.put(job, now);
       if (pending.get() >= simultaneousJobs) {
         Set<Integer> old = new HashSet<>();
         for (Map.Entry<Integer, Set<AtomicBoolean>> entry : priorityLocks.entrySet()) {
@@ -147,12 +147,17 @@ public final class ParallelExecutor {
               }
             } else {
               System.out.println(format(
-                "%s: SLA violated for job %s. spent %d instead of %d",
+                "%s: SLA was violated for job %s. spent %d instead of %d",
                 Thread.currentThread().getName(), job.getName(), duration, job.getSla()
               ));
             }
             synchronized (mutex) {
               startTimeMap.remove(job);
+              Set<AtomicBoolean> locks = priorityLocks.getOrDefault(job.getPriority(), new HashSet<>());
+              locks.remove(lock);
+              if (locks.isEmpty()) {
+                priorityLocks.remove(job.getPriority());
+              }
             }
             if (pending.decrementAndGet() == 0) {
               System.out.println("no more pending jobs");

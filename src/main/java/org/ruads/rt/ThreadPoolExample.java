@@ -28,7 +28,7 @@ public final class ThreadPoolExample {
   private static final int PAYLOAD_SIZE = 100_000;
   private static final int SIMULTANEOUS_JOBS = 4;
   private static final int SIMULTANEOUS_REQUESTS = 100;
-  private static final int JOB_BUCKET_SIZE = 2048;
+  private static final int JOB_BUCKET_SIZE = 1000;
   private static final int SLA = 1000;
 
   public static void main(String[] args) throws ExecutionException, InterruptedException {
@@ -68,7 +68,7 @@ public final class ThreadPoolExample {
           Set<String> response = executeRequest(name, integers, jobService, SLA, startTime, p);
           long elapsedTime = System.currentTimeMillis() - startTime;
           System.out.println(format("%s: took %d, results size: %d", name, elapsedTime, response.size()));
-          validate(name, response);
+//          validate(name, response);
         } catch (ExecutionException | InterruptedException | TimeoutException e) {
           throw new RuntimeException(e);
         }
@@ -84,7 +84,7 @@ public final class ThreadPoolExample {
       futures.add(service.submit(new IntToStr(payload, i, min(JOB_BUCKET_SIZE, payload.length - i), priority)));
       if (futures.size() == SIMULTANEOUS_JOBS) {
         for (Future<Set<String>> future : futures) {
-          result.addAll(future.get(sla, TimeUnit.MILLISECONDS));
+          result.addAll(future.get());
         }
         futures.clear();
       }
