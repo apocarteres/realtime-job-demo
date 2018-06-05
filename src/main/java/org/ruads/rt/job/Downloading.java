@@ -6,9 +6,17 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.ByteBuffer;
+import java.util.List;
 
 import static java.lang.String.format;
 import static java.nio.ByteBuffer.allocateDirect;
+
+//thread1: 5 downloading -> 5 parsing -> 5 checking -> 5 reporting
+
+//thread2: 10 d|o|w|n|l|o|a|d|i|n|g -> 10 parsing -> 10 checking -> 10 reporting
+
+//thread3: 15 d|o|w|n|l|o|a|d|i|n|g -> 10 parsing -> 10 checking -> 10 reporting
+
 
 public final class Downloading extends Job {
     private static final int DOWNLOAD_BUFFER_CAPACITY = 500 * 1024;

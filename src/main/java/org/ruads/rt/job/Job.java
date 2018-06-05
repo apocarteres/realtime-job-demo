@@ -9,7 +9,7 @@ public abstract class Job {
     private final String name;
     private final String id;
 
-    Job(String name, int sla, int priority) {
+    public Job(String name, int sla, int priority) {
         this.priority = priority;
         this.sla = sla;
         this.name = name;
