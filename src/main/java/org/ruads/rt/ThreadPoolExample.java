@@ -4,12 +4,11 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -36,12 +35,12 @@ public final class ThreadPoolExample {
     System.out.println("generating payload...");
     int[] integers = IntStream.range(0, PAYLOAD_SIZE).toArray();
     ExecutorService jobService = newFixedThreadPool(SIMULTANEOUS_JOBS);
-    BlockingQueue<Runnable> queue = new PriorityBlockingQueue<>();
     ExecutorService requestService = new ThreadPoolExecutor(
       SIMULTANEOUS_REQUESTS,
       SIMULTANEOUS_REQUESTS,
       1, TimeUnit.HOURS,
-      queue);
+      new LinkedBlockingQueue<>()
+    );
     try {
       long startTime = System.currentTimeMillis();
       System.out.println(format("generating %d requests...", SIMULTANEOUS_REQUESTS));
@@ -69,7 +68,7 @@ public final class ThreadPoolExample {
           Set<String> response = executeRequest(name, integers, jobService, SLA, startTime, p);
           long elapsedTime = System.currentTimeMillis() - startTime;
           System.out.println(format("%s: took %d, results size: %d", name, elapsedTime, response.size()));
-          validate(response);
+          validate(name, response);
         } catch (ExecutionException | InterruptedException | TimeoutException e) {
           throw new RuntimeException(e);
         }
@@ -80,7 +79,6 @@ public final class ThreadPoolExample {
 
   private static Set<String> executeRequest(String name, int[] payload, ExecutorService service, int sla, long startTime, int priority) throws ExecutionException, InterruptedException, TimeoutException {
     Set<String> result = new HashSet<>(PAYLOAD_SIZE);
-    System.out.println(format("%s: distributing jobs across buckets of size %d", name, JOB_BUCKET_SIZE));
     Set<Future<Set<String>>> futures = new HashSet<>();
     for (int i = 0; i < payload.length; i += JOB_BUCKET_SIZE) {
       futures.add(service.submit(new IntToStr(payload, i, min(JOB_BUCKET_SIZE, payload.length - i), priority)));
@@ -131,14 +129,10 @@ public final class ThreadPoolExample {
     }
   }
 
-  private static void validate(Set<String> data) {
-    if (data.isEmpty()) {
-      System.out.println("ERROR: no data");
-      return;
-    }
+  private static void validate(String name, Set<String> data) {
     for (int i = 0; i < PAYLOAD_SIZE; i++) {
       if (!data.contains(String.valueOf(i))) {
-        throw new RuntimeException(format("validation failed on: %d", i));
+        throw new RuntimeException(format("validation failed for job %s on: %d", name, i));
       }
     }
   }
