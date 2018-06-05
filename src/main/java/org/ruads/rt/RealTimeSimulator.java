@@ -6,12 +6,9 @@ import org.ruads.rt.job.SimpleIntToStr;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
 
 import static java.lang.String.format;
-import static java.lang.Thread.sleep;
 
 @SuppressWarnings("ConstantConditions")
 public final class RealTimeSimulator {
@@ -21,6 +18,11 @@ public final class RealTimeSimulator {
   private static final int SIMULTANEOUS_REQUESTS = 100;
   private static final int SLA = 1000;
   private static final boolean ENABLE_PRIORITIZATION = true;
+
+  // request [5] |- - - - - ...                                                    ... - - -|
+  //          request [7]    | - - - -  ...                 ... - - - - - - - - - - -|
+  //              request [4]                                                                 |- - - - - - -|
+  //                   request [55]       | - - - - - - - |
 
   public static void main(String[] args) {
     int[] ints = IntStream.range(0, PAYLOAD_SIZE).toArray();

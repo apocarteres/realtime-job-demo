@@ -135,7 +135,6 @@ public final class ParallelExecutor {
             if (!sla) {
               if (result != null) {
                 if (!lock.get()) {
-                  System.out.println(format("lock was released. returning back job %s to the queue", job.getName()));
                   synchronized (mutex) {
                     queue.add(result);
                   }

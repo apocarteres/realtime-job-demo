@@ -3,9 +3,6 @@ package org.ruads.rt.job;
 import java.util.HashSet;
 import java.util.Set;
 
-import static java.lang.String.format;
-import static java.lang.Thread.sleep;
-
 public final class SimpleIntToStr extends Job{
 
   private final int[] data;

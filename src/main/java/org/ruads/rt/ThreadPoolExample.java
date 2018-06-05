@@ -32,16 +32,16 @@ public final class ThreadPoolExample {
   private static final int JOB_BUCKET_SIZE = 2048;
   private static final int SLA = 1000;
 
-  public static void main(String[] args) throws ExecutionException, InterruptedException, TimeoutException {
+  public static void main(String[] args) throws ExecutionException, InterruptedException {
     System.out.println("generating payload...");
     int[] integers = IntStream.range(0, PAYLOAD_SIZE).toArray();
     ExecutorService jobService = newFixedThreadPool(SIMULTANEOUS_JOBS);
-    BlockingQueue<Runnable> x = new PriorityBlockingQueue<>();
+    BlockingQueue<Runnable> queue = new PriorityBlockingQueue<>();
     ExecutorService requestService = new ThreadPoolExecutor(
       SIMULTANEOUS_REQUESTS,
       SIMULTANEOUS_REQUESTS,
       1, TimeUnit.HOURS,
-      x);
+      queue);
     try {
       long startTime = System.currentTimeMillis();
       System.out.println(format("generating %d requests...", SIMULTANEOUS_REQUESTS));
